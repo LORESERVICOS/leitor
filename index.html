@@ -1,14 +1,14 @@
 
-<!DOCTYPE html>
+     <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <title>Leitor de Código de Barras</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
   <h2>Leitor de Código de Barras</h2>
-  <div id="camera" style="width:300px;height:200px;border:1px solid black;"></div>
+  <div id="reader" style="width:300px"></div>
   <p><b>Código Lido:</b> <span id="codigo"></span></p>
 
   <label>Quantidade:</label>
@@ -19,42 +19,21 @@
   <script>
     let codigoLido = "";
 
-  Quagga.init({
-  inputStream: {
-    name: "Live",
-    type: "LiveStream",
-    target: document.querySelector('#camera'),
-    constraints: {
-      facingMode: "environment" // usa câmera traseira
+    function onScanSuccess(decodedText, decodedResult) {
+      codigoLido = decodedText;
+      document.getElementById("codigo").innerText = decodedText;
     }
-  },
-decoder: {
-    readers: [
-      "ean_reader",        // EAN-13 (produtos de mercado)
-      "ean_8_reader",      // EAN-8
-      "code128_reader",    // etiquetas/logística
-      "upc_reader",        // UPC
-      "upc_e_reader"       // UPC-E
-    ]
-  },
-locate: true // tenta localizar o código automaticamente
-}, function(err) {
-  if (err) {
-    console.log(err);
-    alert("Erro ao iniciar câmera");
-    return;
-  }
-      Quagga.start();
-    });
 
-   Quagga.onDetected(function(data) {
-  if (data && data.codeResult && data.codeResult.code) {
-    codigoLido = data.codeResult.code;
-    document.getElementById("codigo").innerText = codigoLido;
-    Quagga.stop(); // para não ler várias vezes seguidas
-  }
-});
+    function onScanFailure(error) {
+      // aqui só ignora falhas
+    }
 
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+      "reader", 
+      { fps: 10, qrbox: { width: 250, height: 150 } }, 
+      false
+    );
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 
     function enviarDados() {
       if (!codigoLido) {
@@ -70,10 +49,9 @@ locate: true // tenta localizar o código automaticamente
       .then(r => r.text())
       .then(r => {
         alert("Dados enviados com sucesso!");
-        location.reload(); // reinicia a câmera para próxima leitura
+        location.reload(); // reinicia para próxima leitura
       });
     }
   </script>
 </body>
 </html>
-
