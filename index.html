@@ -1,3 +1,7 @@
+url aplicativo
+https://script.google.com/macros/s/AKfycbz_XqyJWgmNIAoUm37brJ-EJUt4QxNtFNmLi2GsgpM5jimiGPRZuaCS3SQbhXe9PyjZDg/exec
+
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -18,22 +22,42 @@
   <script>
     let codigoLido = "";
 
-    Quagga.init({
-      inputStream: {
-        type: "LiveStream",
-        target: document.querySelector('#camera')
-      },
-      decoder: { readers: ["ean_reader", "code128_reader"] }
-    }, function(err) {
-      if (err) { console.log(err); return }
+  Quagga.init({
+  inputStream: {
+    name: "Live",
+    type: "LiveStream",
+    target: document.querySelector('#camera'),
+    constraints: {
+      facingMode: "environment" // usa câmera traseira
+    }
+  },
+decoder: {
+    readers: [
+      "ean_reader",        // EAN-13 (produtos de mercado)
+      "ean_8_reader",      // EAN-8
+      "code128_reader",    // etiquetas/logística
+      "upc_reader",        // UPC
+      "upc_e_reader"       // UPC-E
+    ]
+  },
+locate: true // tenta localizar o código automaticamente
+}, function(err) {
+  if (err) {
+    console.log(err);
+    alert("Erro ao iniciar câmera");
+    return;
+  }
       Quagga.start();
     });
 
-    Quagga.onDetected(function(data) {
-      codigoLido = data.codeResult.code;
-      document.getElementById("codigo").innerText = codigoLido;
-      Quagga.stop(); // para não ler várias vezes seguidas
-    });
+   Quagga.onDetected(function(data) {
+  if (data && data.codeResult && data.codeResult.code) {
+    codigoLido = data.codeResult.code;
+    document.getElementById("codigo").innerText = codigoLido;
+    Quagga.stop(); // para não ler várias vezes seguidas
+  }
+});
+
 
     function enviarDados() {
       if (!codigoLido) {
